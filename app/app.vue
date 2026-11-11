@@ -7,24 +7,44 @@
 <style>
 :root {
 	--color-bg-sidebar: #1b1938;
-	--color-bg-surface: #222044;
-	--color-bg-subtle: #2b2952;
-	--color-bg-accent-soft: #312e63;
-	--color-border-default: #353263;
-	--color-border-strong: #4c4887;
-	--color-text-primary: #f8fafc;
-	--color-text-secondary: #94a3b8;
+	--color-bg-surface: #23204d;
+	--color-bg-subtle: #2f2a6a;
+	--color-bg-accent-soft: #302b69;
+	--color-border-default: #413e74;
+	--color-border-strong: #615b94;
+	--color-text-primary: #e8e7ec;
+	--color-text-secondary: #b9b3d4;
 	--color-text-inverse: #ffffff;
-	--color-text-accent: #a5b4fc;
-	--color-text-disabled: #64748b;
+	--color-text-accent: #79cee8;
+	--color-text-disabled: #8e88a8;
+
+	--status-new-bg: #353060;
+	--status-new-fg: #bbb6ff;
+	--status-assigned-bg: #203f57;
+	--status-assigned-fg: #79cee8;
+	--status-in-progress-bg: #443955;
+	--status-in-progress-fg: #ffd482;
+	--status-waiting-bg: #37324e;
+	--status-waiting-fg: #c8c3de;
+	--status-escalated-bg: #4a253b;
+	--status-escalated-fg: #ff91ae;
+	--status-resolved-bg: #214544;
+	--status-resolved-fg: #80e1b3;
+	--status-closed-bg: #37324e;
+	--status-closed-fg: #bfb9d6;
+
+	--priority-critical: #ff91ae;
+	--priority-high: #ffd482;
+	--priority-normal: #bbb6ff;
+	--priority-low: #b9b3d4;
 }
 
 body {
 	font-family: 'Montserrat', sans-serif;
 	background: radial-gradient(
-		50% 50% at 45% 50%,
-		rgba(32, 29, 71, 1) 0%,
-		rgba(23, 21, 58, 1) 100%
+		ellipse 45.45% 41.67% at 54.55% 50%,
+		#201d47 0%,
+		#17153a 100%
 	);
 	color: var(--color-text-primary);
 	margin: 0;
@@ -33,9 +53,9 @@ body {
 
 .wf-bg-radial {
 	background: radial-gradient(
-		50% 50% at 45% 50%,
-		rgba(32, 29, 71, 1) 0%,
-		rgba(23, 21, 58, 1) 100%
+		ellipse 45.45% 41.67% at 54.55% 50%,
+		#201d47 0%,
+		#17153a 100%
 	);
 }
 
@@ -75,7 +95,6 @@ body {
 	outline-color: var(--color-border-strong);
 }
 
-/* Focus Ring из секции //1.11 */
 .wf-focus-ring:focus-visible {
 	outline: none;
 	box-shadow:

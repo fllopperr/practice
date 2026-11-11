@@ -1,28 +1,41 @@
 <script setup lang="ts">
-import { AlertCircle, Inbox } from 'lucide-vue-next'
 import type { MockViewState } from '../composable/useRequests'
-import { useRequests } from '../composable/useRequests'
-import type { WorkRequest } from '../utils/types'
+import type { WorkRequest } from '../types/types'
 
-withDefaults(
+const props = withDefaults(
 	defineProps<{
 		items: WorkRequest[]
 		state?: MockViewState
 		showPagination?: boolean
+		page?: number
+		total?: number
+		errorMessage?: string
 	}>(),
 	{
 		state: 'normal',
-		showPagination: false
+		showPagination: false,
+		page: 1,
+		total: 24,
+		errorMessage: ''
 	}
 )
 
 const emit = defineEmits<{
-	create: []
+	reset: []
 	retry: []
+	pageChange: [page: number]
 }>()
 
 const router = useRouter()
-const { density } = useRequests()
+
+const startItem = computed(() => {
+	if (props.total === 0) return 0
+	return (props.page - 1) * 12 + 1
+})
+
+const endItem = computed(() => {
+	return Math.min(props.page * 12, props.total)
+})
 
 const goToRequest = (id: string) => {
 	router.push(`/requests/${id}`)
@@ -32,20 +45,55 @@ const goToRequest = (id: string) => {
 <template>
 	<div
 		v-if="state === 'loading'"
-		class="self-stretch px-6 py-10 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-center items-center gap-4"
+		style="
+			align-self: stretch;
+			padding: 40px 24px;
+			background: var(--color-bg-surface, #23204d);
+			border-radius: 4px;
+			outline: 1px var(--color-border-default, #413e74) solid;
+			outline-offset: -1px;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 16px;
+			display: flex;
+		"
 	>
 		<div
-			class="self-stretch text-center justify-start text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
 		>
 			Загружаем заявки…
 		</div>
 		<div
 			v-for="n in 6"
 			:key="n"
-			class="self-stretch p-4 bg-color-bg-subtle inline-flex justify-start items-start gap-3"
+			style="
+				align-self: stretch;
+				padding: 16px;
+				background: var(--color-bg-subtle, #2f2a6a);
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 12px;
+				display: inline-flex;
+			"
 		>
 			<div
-				class="justify-start text-color-text-disabled text-sm font-normal font-['Montserrat'] leading-5 whitespace-pre"
+				style="
+					color: var(--color-text-disabled, #8e88a8);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+					white-space: pre;
+				"
 			>
 				— — —
 			</div>
@@ -54,86 +102,303 @@ const goToRequest = (id: string) => {
 
 	<div
 		v-else-if="state === 'error'"
-		class="self-stretch px-6 py-10 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-center items-center gap-4"
+		style="
+			align-self: stretch;
+			padding: 40px 24px;
+			background: var(--color-bg-surface, #23204d);
+			border-radius: 4px;
+			outline: 1px var(--color-border-default, #413e74) solid;
+			outline-offset: -1px;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 16px;
+			display: flex;
+		"
 	>
-		<AlertCircle class="size-5 text-color-text-secondary stroke-[1.67]" />
+		<div style="width: 20px; height: 20px; position: relative">
+			<div
+				style="
+					width: 15px;
+					height: 15px;
+					left: 2.5px;
+					top: 2.5px;
+					position: absolute;
+					outline: 1.67px var(--color-text-secondary, #b9b3d4) solid;
+					outline-offset: -0.83px;
+				"
+			></div>
+			<div
+				style="
+					width: 0.01px;
+					height: 6.67px;
+					left: 10px;
+					top: 6.67px;
+					position: absolute;
+					outline: 1.67px var(--color-text-secondary, #b9b3d4) solid;
+					outline-offset: -0.83px;
+				"
+			></div>
+		</div>
 		<div
-			class="self-stretch text-center justify-start text-color-text-primary text-xl font-semibold font-['Montserrat'] leading-7"
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-primary, #e8e7ec);
+				font-size: 20px;
+				font-family: Montserrat;
+				font-weight: 600;
+				line-height: 28px;
+			"
 		>
 			Не удалось загрузить заявки
 		</div>
 		<div
-			class="self-stretch text-center justify-start text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
 		>
-			Сервис временно недоступен. Попробуйте ещё раз.
+			{{ errorMessage || 'Сервис временно недоступен. Попробуйте ещё раз.' }}
 		</div>
 		<button
 			type="button"
-			class="h-10 px-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-sm inline-flex justify-center items-center gap-2 text-color-text-inverse text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
+			data-state="default"
+			data-variant="primary"
+			style="
+				height: 40px;
+				padding-left: 16px;
+				padding-right: 16px;
+				background: linear-gradient(90deg, #635bff 0%, #c548ab 100%);
+				border-radius: 4px;
+				justify-content: center;
+				align-items: center;
+				gap: 8px;
+				display: inline-flex;
+				cursor: pointer;
+			"
+			class="wf-focus-ring"
 			@click="emit('retry')"
 		>
-			Повторить загрузку
+			<span
+				style="
+					color: var(--color-text-inverse, white);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 500;
+					line-height: 20px;
+				"
+			>
+				Повторить загрузку
+			</span>
 		</button>
 	</div>
 
 	<div
 		v-else-if="items.length === 0"
-		class="self-stretch px-6 py-10 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-center items-center gap-4"
+		style="
+			align-self: stretch;
+			padding-left: 24px;
+			padding-right: 24px;
+			padding-top: 40px;
+			padding-bottom: 40px;
+			background: var(--color-bg-surface, #23204d);
+			border-radius: 4px;
+			outline: 1px var(--color-border-default, #413e74) solid;
+			outline-offset: -1px;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 16px;
+			display: flex;
+		"
 	>
-		<Inbox class="size-5 text-color-text-secondary stroke-[1.67]" />
-		<div
-			class="self-stretch text-center justify-start text-color-text-primary text-xl font-semibold font-['Montserrat'] leading-7"
-		>
-			Заявок пока нет
+		<div style="width: 20px; height: 20px; position: relative">
+			<div
+				style="
+					width: 11.67px;
+					height: 11.67px;
+					left: 3.33px;
+					top: 3.33px;
+					position: absolute;
+					outline: 1.67px var(--color-text-secondary, #b9b3d4) solid;
+					outline-offset: -0.83px;
+				"
+			></div>
+			<div
+				style="
+					width: 3.58px;
+					height: 3.58px;
+					left: 13.92px;
+					top: 13.92px;
+					position: absolute;
+					outline: 1.67px var(--color-text-secondary, #b9b3d4) solid;
+					outline-offset: -0.83px;
+				"
+			></div>
 		</div>
 		<div
-			class="self-stretch text-center justify-start text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-primary, #e8e7ec);
+				font-size: 20px;
+				font-family: Montserrat;
+				font-weight: 600;
+				line-height: 28px;
+			"
 		>
-			Обращения появятся здесь после создания.
+			Ничего не найдено
+		</div>
+		<div
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
+		>
+			Попробуйте изменить запрос или сбросить фильтры.
 		</div>
 		<button
 			type="button"
-			class="h-10 px-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-sm inline-flex justify-center items-center gap-2 text-color-text-inverse text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-			@click="emit('create')"
+			data-state="default"
+			data-variant="secondary"
+			style="
+				height: 40px;
+				padding-left: 16px;
+				padding-right: 16px;
+				background: var(--color-bg-surface, #23204d);
+				border-radius: 4px;
+				outline: 1px var(--color-border-strong, #615b94) solid;
+				outline-offset: -1px;
+				justify-content: center;
+				align-items: center;
+				gap: 8px;
+				display: inline-flex;
+				cursor: pointer;
+			"
+			class="wf-focus-ring"
+			@click="emit('reset')"
 		>
-			Создать заявку
+			<span
+				style="
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 500;
+					line-height: 20px;
+				"
+			>
+				Сбросить фильтры
+			</span>
 		</button>
 	</div>
 
 	<template v-else>
 		<div
-			class="hidden md:flex self-stretch bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex-col justify-start items-start"
+			class="hidden md:flex"
+			style="
+				align-self: stretch;
+				background: var(--color-bg-surface, #23204d);
+				border-radius: 4px;
+				outline: 1px var(--color-border-default, #413e74) solid;
+				outline-offset: -1px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+			"
 		>
 			<div
-				class="self-stretch p-4 bg-color-bg-subtle inline-flex justify-start items-start gap-3"
+				style="
+					align-self: stretch;
+					padding: 16px;
+					background: var(--color-bg-subtle, #2f2a6a);
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 12px;
+					display: inline-flex;
+				"
 			>
 				<div
-					class="w-16 justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						width: 62px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Номер
 				</div>
 				<div
-					class="flex-1 justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						flex: 1 1 0;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Заявка
 				</div>
 				<div
-					class="w-36 hidden lg:block justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					class="hidden lg:block"
+					style="
+						width: 140px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Клиент
 				</div>
 				<div
-					class="w-28 hidden lg:block justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					class="hidden lg:block"
+					style="
+						width: 110px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Исполнитель
 				</div>
 				<div
-					class="w-28 justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						width: 120px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Статус
 				</div>
 				<div
-					class="w-32 justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						width: 130px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Приоритет
 				</div>
@@ -144,36 +409,93 @@ const goToRequest = (id: string) => {
 				:key="item.id"
 				tabindex="0"
 				role="link"
-				:class="density === 'compact' ? 'h-11' : 'h-14'"
-				class="self-stretch px-4 bg-color-bg-surface hover:bg-color-bg-subtle inline-flex justify-start items-center gap-3 cursor-pointer wf-focus-ring"
+				style="
+					align-self: stretch;
+					height: 54px;
+					padding-left: 16px;
+					padding-right: 16px;
+					background: var(--color-bg-surface, #23204d);
+					justify-content: flex-start;
+					align-items: center;
+					gap: 12px;
+					display: inline-flex;
+					cursor: pointer;
+				"
+				class="hover:bg-[#2F2A6A] wf-focus-ring"
 				@click="goToRequest(item.id)"
 				@keydown.enter.prevent="goToRequest(item.id)"
 				@keydown.space.prevent="goToRequest(item.id)"
 			>
 				<div
-					class="w-16 justify-start text-color-text-secondary text-xs font-medium font-['Montserrat'] leading-4"
+					style="
+						width: 62px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 16px;
+					"
 				>
 					{{ item.number }}
 				</div>
 				<div
-					class="flex-1 justify-start text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5"
+					style="
+						flex: 1 1 0;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
 				>
 					{{ item.title }}
 				</div>
 				<div
-					class="w-36 hidden lg:block justify-start text-color-text-primary text-xs font-medium font-['Montserrat'] leading-4"
+					class="hidden lg:block"
+					style="
+						width: 140px;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 16px;
+					"
 				>
 					{{ item.client }}
 				</div>
 				<div
-					class="w-28 hidden lg:block justify-start text-color-text-primary text-xs font-medium font-['Montserrat'] leading-4"
+					class="hidden lg:block"
+					style="
+						width: 110px;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 16px;
+					"
 				>
 					{{ item.assignee }}
 				</div>
-				<div class="w-28 flex justify-start items-center overflow-hidden">
+				<div
+					style="
+						width: 120px;
+						overflow: hidden;
+						justify-content: flex-start;
+						align-items: center;
+						display: flex;
+					"
+				>
 					<StatusBadge :status="item.status" />
 				</div>
-				<div class="w-32 flex justify-start items-center overflow-hidden">
+				<div
+					style="
+						width: 130px;
+						overflow: hidden;
+						justify-content: flex-start;
+						align-items: center;
+						display: flex;
+					"
+				>
 					<PriorityBadge :priority="item.priority" />
 				</div>
 			</div>
@@ -187,38 +509,123 @@ const goToRequest = (id: string) => {
 
 		<div
 			v-if="showPagination"
-			class="self-stretch inline-flex justify-start items-center gap-3 flex-wrap content-center"
+			style="
+				align-self: stretch;
+				justify-content: flex-start;
+				align-items: center;
+				gap: 12px;
+				display: inline-flex;
+				flex-wrap: wrap;
+			"
 		>
 			<div
-				class="w-80 md:flex-1 justify-start text-color-text-secondary text-xs font-medium font-['Montserrat'] leading-4"
+				style="
+					flex: 1 1 0;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 500;
+					line-height: 16px;
+				"
 			>
-				Показано 1–{{ items.length }} из 24
+				Показано {{ startItem }}–{{ endItem }} из {{ total }}
 			</div>
-			<button
-				type="button"
-				disabled
-				class="h-10 px-4 bg-color-bg-subtle rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex justify-center items-center gap-2 text-color-text-disabled text-sm font-medium font-['Montserrat'] leading-5"
-			>
-				Назад
-			</button>
-			<button
-				type="button"
-				class="h-10 px-4 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-strong flex justify-center items-center gap-2 text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-			>
-				1
-			</button>
-			<button
-				type="button"
-				class="h-10 px-4 rounded-sm flex justify-center items-center gap-2 text-color-text-accent hover:bg-color-bg-accent-soft text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-			>
-				2
-			</button>
-			<button
-				type="button"
-				class="h-10 px-4 bg-color-bg-surface hover:bg-color-bg-subtle rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-strong flex justify-center items-center gap-2 text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-			>
-				Далее
-			</button>
+
+			<template v-if="total > 12">
+				<button
+					type="button"
+					:disabled="page <= 1"
+					:data-state="page <= 1 ? 'disabled' : 'default'"
+					data-variant="secondary"
+					:style="
+						page <= 1
+							? 'height: 40px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-subtle, #2F2A6A); border-radius: 4px; outline: 1px var(--color-border-default, #413E74) solid; outline-offset: -1px; justify-content: center; align-items: center; gap: 8px; display: flex'
+							: 'height: 40px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-surface, #23204D); border-radius: 4px; outline: 1px var(--color-border-strong, #615B94) solid; outline-offset: -1px; justify-content: center; align-items: center; gap: 8px; display: flex; cursor: pointer'
+					"
+					class="wf-focus-ring"
+					@click="emit('pageChange', page - 1)"
+				>
+					<span
+						:style="
+							page <= 1
+								? 'color: var(--color-text-disabled, #8E88A8); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+								: 'color: var(--color-text-primary, #E8E7EC); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+						"
+					>
+						Назад
+					</span>
+				</button>
+
+				<button
+					type="button"
+					data-state="default"
+					:data-variant="page === 1 ? 'secondary' : 'ghost'"
+					:style="
+						page === 1
+							? 'height: 40px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-surface, #23204D); border-radius: 4px; outline: 1px var(--color-border-strong, #615B94) solid; outline-offset: -1px; justify-content: center; align-items: center; gap: 8px; display: flex; cursor: pointer'
+							: 'height: 40px; padding-left: 16px; padding-right: 16px; border-radius: 4px; justify-content: center; align-items: center; gap: 8px; display: flex; cursor: pointer'
+					"
+					class="wf-focus-ring"
+					@click="emit('pageChange', 1)"
+				>
+					<span
+						:style="
+							page === 1
+								? 'color: var(--color-text-primary, #E8E7EC); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+								: 'color: var(--color-text-accent, #79CEE8); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+						"
+					>
+						1
+					</span>
+				</button>
+
+				<button
+					type="button"
+					data-state="default"
+					:data-variant="page === 2 ? 'secondary' : 'ghost'"
+					:style="
+						page === 2
+							? 'height: 40px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-surface, #23204D); border-radius: 4px; outline: 1px var(--color-border-strong, #615B94) solid; outline-offset: -1px; justify-content: center; align-items: center; gap: 8px; display: flex; cursor: pointer'
+							: 'height: 40px; padding-left: 16px; padding-right: 16px; border-radius: 4px; justify-content: center; align-items: center; gap: 8px; display: flex; cursor: pointer'
+					"
+					class="wf-focus-ring"
+					@click="emit('pageChange', 2)"
+				>
+					<span
+						:style="
+							page === 2
+								? 'color: var(--color-text-primary, #E8E7EC); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+								: 'color: var(--color-text-accent, #79CEE8); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+						"
+					>
+						2
+					</span>
+				</button>
+
+				<button
+					type="button"
+					:disabled="page >= 2"
+					:data-state="page >= 2 ? 'disabled' : 'default'"
+					data-variant="secondary"
+					:style="
+						page >= 2
+							? 'height: 40px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-subtle, #2F2A6A); border-radius: 4px; outline: 1px var(--color-border-default, #413E74) solid; outline-offset: -1px; justify-content: center; align-items: center; gap: 8px; display: flex'
+							: 'height: 40px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-surface, #23204D); border-radius: 4px; outline: 1px var(--color-border-strong, #615B94) solid; outline-offset: -1px; justify-content: center; align-items: center; gap: 8px; display: flex; cursor: pointer'
+					"
+					class="wf-focus-ring"
+					@click="emit('pageChange', page + 1)"
+				>
+					<span
+						:style="
+							page >= 2
+								? 'color: var(--color-text-disabled, #8E88A8); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+								: 'color: var(--color-text-primary, #E8E7EC); font-size: 14px; font-family: Montserrat; font-weight: 500; line-height: 20px'
+						"
+					>
+						Далее
+					</span>
+				</button>
+			</template>
 		</div>
 	</template>
 </template>

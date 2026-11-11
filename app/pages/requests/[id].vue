@@ -1,95 +1,612 @@
 <script setup lang="ts">
-import { useRequests } from '~/composable/useRequests'
-import { ASSIGNEE_OPTIONS } from '~/utils/mockData'
-import type { Priority } from '~/utils/types'
+import { transformApiRequest } from '~/utils/transformers'
+import type {
+	ApiCategory,
+	ApiCustomer,
+	ApiRequestDto,
+	ApiUser
+} from '../../types/types'
 
 const route = useRoute()
+const router = useRouter()
 const id = computed(() => String(route.params.id))
 
-const { getById, addComment, updateRequestParams } = useRequests()
-const request = getById(id.value)
-
-const commentText = ref('')
-const selectedAssignee = ref('Не назначен')
-const selectedPriority = ref<Priority>('high')
-
-watch(
-	request,
-	val => {
-		if (val) {
-			selectedAssignee.value = val.assignee
-			selectedPriority.value = val.priority
-		}
-	},
-	{ immediate: true }
+const forceSkeleton = ref(route.query.loading === '1')
+const errorParam = ref<string | undefined>(
+	route.query.error ? String(route.query.error) : undefined
 )
 
-const handleSendComment = () => {
-	if (!commentText.value.trim()) return
-	addComment(id.value, commentText.value)
-	commentText.value = ''
+const { data: usersData } = useFetch<ApiUser[]>('/api/users', {
+	key: 'api-users'
+})
+const { data: customersData } = useFetch<ApiCustomer[]>('/api/customers', {
+	key: 'api-customers'
+})
+const { data: categoriesData } = useFetch<ApiCategory[]>('/api/categories', {
+	key: 'api-categories'
+})
+
+const {
+	data: rawRequest,
+	status,
+	error,
+	refresh
+} = useFetch<ApiRequestDto>(() => `/api/requests/${id.value}`, {
+	query: computed(() => ({
+		error: errorParam.value
+	}))
+})
+
+const request = computed(() => {
+	if (!rawRequest.value) return null
+	return transformApiRequest(
+		rawRequest.value,
+		{
+			users: usersData.value ?? [],
+			customers: customersData.value ?? [],
+			categories: categoriesData.value ?? []
+		},
+		true
+	)
+})
+
+const retryLoad = () => {
+	errorParam.value = undefined
+	forceSkeleton.value = false
+	router.replace({ query: {} })
+	refresh()
 }
 
-const handleAssign = () => {
-	updateRequestParams(id.value, {
-		assignee: selectedAssignee.value,
-		priority: selectedPriority.value
-	})
+const onKeydown = (e: KeyboardEvent) => {
+	const tag = (e.target as HTMLElement)?.tagName
+	if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+	if (e.key === '1') retryLoad()
+	if (e.key === '2') forceSkeleton.value = !forceSkeleton.value
+	if (e.key === '4') {
+		forceSkeleton.value = false
+		errorParam.value = '500'
+	}
 }
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-	<template v-if="request">
-		<NuxtLink
-			to="/requests"
-			class="h-10 px-4 rounded-sm inline-flex justify-center items-center gap-2 text-color-text-accent hover:bg-color-bg-accent-soft text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
+	<NuxtLink
+		to="/requests"
+		data-state="default"
+		data-variant="ghost"
+		style="
+			height: 40px;
+			padding-left: 16px;
+			padding-right: 16px;
+			border-radius: 4px;
+			justify-content: center;
+			align-items: center;
+			gap: 8px;
+			display: inline-flex;
+		"
+		class="wf-focus-ring"
+	>
+		<div
+			style="
+				color: var(--color-text-accent, #79cee8);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 500;
+				line-height: 20px;
+			"
 		>
 			← К списку заявок
-		</NuxtLink>
+		</div>
+	</NuxtLink>
 
+	<template v-if="forceSkeleton || status === 'pending'">
 		<div
-			class="self-stretch justify-start text-color-text-primary text-2xl md:text-3xl font-bold font-['Montserrat'] leading-8 md:leading-9"
+			style="
+				align-self: stretch;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
+		>
+			Загружаем заявку…
+		</div>
+		<div
+			style="
+				align-self: stretch;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 24px;
+				display: inline-flex;
+				flex-wrap: wrap;
+			"
+		>
+			<div
+				style="
+					flex: 1 1 0;
+					min-width: 300px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 20px;
+					display: inline-flex;
+				"
+			>
+				<div
+					style="
+						align-self: stretch;
+						padding: 24px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 16px;
+						display: flex;
+					"
+				>
+					<div
+						style="
+							width: 200px;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+				</div>
+				<div
+					style="
+						align-self: stretch;
+						padding: 24px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 16px;
+						display: flex;
+					"
+				>
+					<div
+						style="
+							width: 200px;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+				</div>
+				<div
+					style="
+						align-self: stretch;
+						padding: 24px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 16px;
+						display: flex;
+					"
+				>
+					<div
+						style="
+							width: 200px;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+					<div
+						style="
+							align-self: stretch;
+							height: 32px;
+							padding: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+						"
+					></div>
+				</div>
+			</div>
+
+			<div
+				style="
+					width: 320px;
+					padding: 24px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 16px;
+					display: inline-flex;
+				"
+			>
+				<div
+					style="
+						width: 200px;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+				<div
+					style="
+						align-self: stretch;
+						height: 32px;
+						padding: 16px;
+						background: var(--color-bg-subtle, #2f2a6a);
+					"
+				></div>
+			</div>
+		</div>
+	</template>
+
+	<div
+		v-else-if="error"
+		style="
+			align-self: stretch;
+			padding-left: 24px;
+			padding-right: 24px;
+			padding-top: 40px;
+			padding-bottom: 40px;
+			background: var(--color-bg-surface, #23204d);
+			border-radius: 4px;
+			outline: 1px var(--color-border-default, #413e74) solid;
+			outline-offset: -1px;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			gap: 16px;
+			display: flex;
+		"
+	>
+		<div style="width: 20px; height: 20px; position: relative">
+			<div
+				style="
+					width: 15px;
+					height: 15px;
+					left: 2.5px;
+					top: 2.5px;
+					position: absolute;
+					outline: 1.67px var(--color-text-secondary, #b9b3d4) solid;
+					outline-offset: -0.83px;
+				"
+			></div>
+			<div
+				style="
+					width: 0.01px;
+					height: 6.67px;
+					left: 10px;
+					top: 6.67px;
+					position: absolute;
+					outline: 1.67px var(--color-text-secondary, #b9b3d4) solid;
+					outline-offset: -0.83px;
+				"
+			></div>
+		</div>
+		<div
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-primary, #e8e7ec);
+				font-size: 20px;
+				font-family: Montserrat;
+				font-weight: 600;
+				line-height: 28px;
+			"
+		>
+			Не удалось загрузить заявку
+		</div>
+		<div
+			style="
+				align-self: stretch;
+				text-align: center;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
+		>
+			Проверьте соединение и повторите загрузку.
+		</div>
+		<button
+			type="button"
+			data-state="default"
+			data-variant="primary"
+			style="
+				height: 40px;
+				padding-left: 16px;
+				padding-right: 16px;
+				background: linear-gradient(90deg, #635bff 0%, #c548ab 100%);
+				border-radius: 4px;
+				justify-content: center;
+				align-items: center;
+				gap: 8px;
+				display: inline-flex;
+				cursor: pointer;
+			"
+			class="wf-focus-ring"
+			@click="retryLoad"
+		>
+			<span
+				style="
+					color: var(--color-text-inverse, white);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 500;
+					line-height: 20px;
+				"
+			>
+				Повторить загрузку
+			</span>
+		</button>
+	</div>
+
+	<template v-else-if="request">
+		<div
+			style="
+				align-self: stretch;
+				color: var(--color-text-primary, #e8e7ec);
+				font-size: 28px;
+				font-family: Montserrat;
+				font-weight: 700;
+				line-height: 36px;
+			"
 		>
 			{{ request.title }}
 		</div>
-
 		<div
-			class="self-stretch justify-start text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+			style="
+				align-self: stretch;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
 		>
 			{{ request.number }} · {{ request.createdAtText }}
 		</div>
-
-		<div class="self-stretch inline-flex justify-start items-start gap-3">
+		<div
+			style="
+				align-self: stretch;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 12px;
+				display: inline-flex;
+			"
+		>
 			<StatusBadge :status="request.status" />
 			<PriorityBadge :priority="request.priority" />
 		</div>
 
 		<div
-			class="self-stretch flex flex-col md:flex-row justify-start items-start gap-6"
+			style="
+				align-self: stretch;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 24px;
+				display: inline-flex;
+				flex-wrap: wrap;
+			"
 		>
 			<div
-				class="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-5"
+				style="
+					flex: 1 1 0;
+					min-width: 300px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 20px;
+					display: inline-flex;
+				"
 			>
 				<div
-					class="self-stretch p-6 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-start items-start gap-4"
+					style="
+						align-self: stretch;
+						padding: 24px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 16px;
+						display: flex;
+					"
 				>
 					<div
-						class="self-stretch justify-start text-color-text-primary text-xl font-semibold font-['Montserrat'] leading-7"
+						style="
+							align-self: stretch;
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 20px;
+							font-family: Montserrat;
+							font-weight: 600;
+							line-height: 28px;
+						"
 					>
 						Описание проблемы
 					</div>
 					<div
-						class="self-stretch justify-start text-color-text-primary text-sm font-normal font-['Montserrat'] leading-5"
+						style="
+							align-self: stretch;
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 400;
+							line-height: 20px;
+						"
 					>
 						{{ request.description }}
 					</div>
 				</div>
 
 				<div
-					class="self-stretch p-6 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-start items-start gap-4"
+					style="
+						align-self: stretch;
+						padding: 24px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 16px;
+						display: flex;
+					"
 				>
 					<div
-						class="self-stretch justify-start text-color-text-primary text-xl font-semibold font-['Montserrat'] leading-7"
+						style="
+							align-self: stretch;
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 20px;
+							font-family: Montserrat;
+							font-weight: 600;
+							line-height: 28px;
+						"
 					>
 						Комментарии · {{ request.comments.length }}
 					</div>
@@ -97,64 +614,160 @@ const handleAssign = () => {
 					<div
 						v-for="c in request.comments"
 						:key="c.id"
-						class="self-stretch flex flex-col justify-start items-start gap-2"
+						style="
+							align-self: stretch;
+							flex-direction: column;
+							justify-content: flex-start;
+							align-items: flex-start;
+							gap: 8px;
+							display: flex;
+						"
 					>
 						<div
-							class="self-stretch justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+							style="
+								align-self: stretch;
+								color: var(--color-text-secondary, #b9b3d4);
+								font-size: 12px;
+								font-family: Montserrat;
+								font-weight: 600;
+								line-height: 16px;
+							"
 						>
 							{{ c.author }} · {{ c.time }}
 						</div>
 						<div
-							class="self-stretch justify-start text-color-text-primary text-sm font-normal font-['Montserrat'] leading-5"
+							style="
+								align-self: stretch;
+								color: var(--color-text-primary, #e8e7ec);
+								font-size: 14px;
+								font-family: Montserrat;
+								font-weight: 400;
+								line-height: 20px;
+							"
 						>
 							{{ c.text }}
 						</div>
 					</div>
 
 					<div
-						class="self-stretch flex flex-col justify-start items-start gap-2"
+						style="
+							align-self: stretch;
+							flex-direction: column;
+							justify-content: flex-start;
+							align-items: flex-start;
+							gap: 8px;
+							display: flex;
+						"
 					>
-						<label
-							for="c-box"
-							class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+						<div
+							style="
+								align-self: stretch;
+								color: var(--color-text-primary, #e8e7ec);
+								font-size: 12px;
+								font-family: Montserrat;
+								font-weight: 600;
+								line-height: 16px;
+							"
 						>
 							Ваш комментарий
-						</label>
-						<textarea
-							id="c-box"
-							v-model="commentText"
-							placeholder="Напишите сообщение…"
-							class="self-stretch w-full min-h-28 p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-primary placeholder:text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
-						/>
+						</div>
+						<div
+							style="
+								align-self: stretch;
+								min-height: 112px;
+								padding: 14px;
+								background: var(--color-bg-surface, #23204d);
+								border-radius: 4px;
+								outline: 1px var(--color-border-default, #413e74) solid;
+								outline-offset: -1px;
+								justify-content: flex-start;
+								align-items: flex-start;
+								gap: 8px;
+								display: inline-flex;
+							"
+						>
+							<div
+								style="
+									flex: 1 1 0;
+									color: var(--color-text-secondary, #b9b3d4);
+									font-size: 14px;
+									font-family: Montserrat;
+									font-weight: 400;
+									line-height: 20px;
+								"
+							>
+								Напишите сообщение…
+							</div>
+						</div>
 					</div>
 
-					<button
-						type="button"
-						:disabled="!commentText.trim()"
-						class="w-full md:w-auto h-10 px-4 rounded-sm inline-flex justify-center items-center gap-2 text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-						:class="
-							commentText.trim()
-								? 'bg-gradient-to-r from-indigo-500 to-pink-500 text-color-text-inverse'
-								: 'bg-color-bg-subtle text-color-text-disabled'
+					<div
+						data-state="disabled"
+						data-variant="primary"
+						style="
+							height: 40px;
+							padding-left: 16px;
+							padding-right: 16px;
+							background: var(--color-bg-subtle, #2f2a6a);
+							border-radius: 4px;
+							justify-content: center;
+							align-items: center;
+							gap: 8px;
+							display: inline-flex;
 						"
-						@click="handleSendComment"
 					>
-						Отправить комментарий
-					</button>
+						<div
+							style="
+								color: var(--color-text-disabled, #8e88a8);
+								font-size: 14px;
+								font-family: Montserrat;
+								font-weight: 500;
+								line-height: 20px;
+							"
+						>
+							Отправить комментарий
+						</div>
+					</div>
 				</div>
 
 				<div
-					class="self-stretch p-6 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-start items-start gap-4"
+					style="
+						align-self: stretch;
+						padding: 24px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 16px;
+						display: flex;
+					"
 				>
 					<div
-						class="self-stretch justify-start text-color-text-primary text-xl font-semibold font-['Montserrat'] leading-7"
+						style="
+							align-self: stretch;
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 20px;
+							font-family: Montserrat;
+							font-weight: 600;
+							line-height: 28px;
+						"
 					>
 						История заявки
 					</div>
 					<div
 						v-for="h in request.history"
 						:key="h.id"
-						class="self-stretch justify-start text-color-text-secondary text-xs font-medium font-['Montserrat'] leading-4"
+						style="
+							align-self: stretch;
+							color: var(--color-text-secondary, #b9b3d4);
+							font-size: 12px;
+							font-family: Montserrat;
+							font-weight: 500;
+							line-height: 16px;
+						"
 					>
 						{{ h.time }}  {{ h.text }}
 					</div>
@@ -162,91 +775,249 @@ const handleAssign = () => {
 			</div>
 
 			<div
-				class="w-full md:w-80 p-6 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default inline-flex flex-col justify-start items-start gap-4"
+				style="
+					width: 320px;
+					padding: 24px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 16px;
+					display: inline-flex;
+				"
 			>
 				<div
-					class="self-stretch justify-start text-color-text-primary text-xl font-semibold font-['Montserrat'] leading-7"
+					style="
+						align-self: stretch;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 20px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 28px;
+					"
 				>
 					Параметры
 				</div>
-
 				<div
-					class="self-stretch justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						align-self: stretch;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Клиент
 				</div>
 				<div
-					class="self-stretch justify-start text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5"
+					style="
+						align-self: stretch;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
 				>
 					{{ request.client }}
 				</div>
-
 				<div
-					class="self-stretch justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						align-self: stretch;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Категория
 				</div>
 				<div
-					class="self-stretch justify-start text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5"
+					style="
+						align-self: stretch;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
 				>
 					{{ request.category }}
 				</div>
 
-				<div class="self-stretch flex flex-col justify-start items-start gap-2">
-					<label
-						for="p-assign"
-						class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				<div
+					style="
+						align-self: stretch;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 8px;
+						display: flex;
+					"
+				>
+					<div
+						style="
+							align-self: stretch;
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 12px;
+							font-family: Montserrat;
+							font-weight: 600;
+							line-height: 16px;
+						"
 					>
 						Исполнитель
-					</label>
-					<select
-						id="p-assign"
-						v-model="selectedAssignee"
-						class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+					</div>
+					<div
+						style="
+							align-self: stretch;
+							padding: 14px;
+							background: var(--color-bg-surface, #23204d);
+							border-radius: 4px;
+							outline: 1px var(--color-border-default, #413e74) solid;
+							outline-offset: -1px;
+							justify-content: flex-start;
+							align-items: center;
+							gap: 8px;
+							display: inline-flex;
+						"
 					>
-						<option v-for="a in ASSIGNEE_OPTIONS" :key="a" :value="a">
-							{{ a }}
-						</option>
-					</select>
-				</div>
-
-				<div class="self-stretch flex flex-col justify-start items-start gap-2">
-					<label
-						for="p-prio"
-						class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
-					>
-						Приоритет
-					</label>
-					<select
-						id="p-prio"
-						v-model="selectedPriority"
-						class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
-					>
-						<option value="critical">Критический</option>
-						<option value="high">Высокий</option>
-						<option value="normal">Обычный</option>
-						<option value="low">Низкий</option>
-					</select>
+						<div
+							style="
+								flex: 1 1 0;
+								color: var(--color-text-secondary, #b9b3d4);
+								font-size: 14px;
+								font-family: Montserrat;
+								font-weight: 400;
+								line-height: 20px;
+								word-wrap: break-word;
+							"
+						>
+							{{ request.assignee }}
+						</div>
+						<div
+							style="
+								color: var(--color-text-secondary, #b9b3d4);
+								font-size: 14px;
+								font-family: Montserrat;
+								font-weight: 400;
+								line-height: 20px;
+							"
+						>
+							▾
+						</div>
+					</div>
 				</div>
 
 				<div
-					class="self-stretch justify-start text-color-text-secondary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						align-self: stretch;
+						flex-direction: column;
+						justify-content: flex-start;
+						align-items: flex-start;
+						gap: 8px;
+						display: flex;
+					"
+				>
+					<div
+						style="
+							align-self: stretch;
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 12px;
+							font-family: Montserrat;
+							font-weight: 600;
+							line-height: 16px;
+						"
+					>
+						Приоритет
+					</div>
+					<div
+						style="
+							align-self: stretch;
+							padding: 14px;
+							background: var(--color-bg-surface, #23204d);
+							border-radius: 4px;
+							outline: 1px var(--color-border-default, #413e74) solid;
+							outline-offset: -1px;
+							justify-content: flex-start;
+							align-items: flex-start;
+							gap: 8px;
+							display: inline-flex;
+						"
+					>
+						<div
+							style="
+								flex: 1 1 0;
+								color: var(--color-text-secondary, #b9b3d4);
+								font-size: 14px;
+								font-family: Montserrat;
+								font-weight: 400;
+								line-height: 20px;
+							"
+						>
+							Высокий ▾
+						</div>
+					</div>
+				</div>
+
+				<div
+					style="
+						align-self: stretch;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Срок решения
 				</div>
 				<div
-					class="self-stretch justify-start text-color-text-accent text-sm font-medium font-['Montserrat'] leading-5"
+					style="
+						align-self: stretch;
+						color: var(--color-text-accent, #79cee8);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
 				>
 					{{ request.dueDateText }}
 				</div>
 
-				<button
-					type="button"
-					class="self-stretch h-10 px-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-sm inline-flex justify-center items-center gap-2 text-color-text-inverse text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-					@click="handleAssign"
+				<div
+					data-state="default"
+					data-variant="primary"
+					style="
+						align-self: stretch;
+						height: 40px;
+						padding-left: 16px;
+						padding-right: 16px;
+						background: linear-gradient(90deg, #635bff 0%, #c548ab 100%);
+						border-radius: 4px;
+						justify-content: center;
+						align-items: center;
+						gap: 8px;
+						display: inline-flex;
+						cursor: pointer;
+					"
 				>
-					Назначить исполнителя
-				</button>
+					<div
+						style="
+							color: var(--color-text-inverse, white);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 500;
+							line-height: 20px;
+						"
+					>
+						Изменить статус
+					</div>
+				</div>
 			</div>
 		</div>
 	</template>

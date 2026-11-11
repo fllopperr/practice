@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useRequests } from '~/composable/useRequests'
 import {
 	ASSIGNEE_OPTIONS,
 	PRIORITY_LABELS,
 	STATUS_LABELS
 } from '~/utils/mockData'
-import type { Priority, RequestStatus } from '~/utils/types'
+import { useRequests } from '../composable/useRequests'
+import type { Priority, RequestStatus } from '../types/types'
 
 defineProps<{
 	threeColumnsOnly?: boolean

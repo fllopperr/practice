@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRequests } from '~/composable/useRequests'
+import { useRequests } from '../composable/useRequests'
 
 const { density } = useRequests()
 const name = ref('Данил Горбунов')

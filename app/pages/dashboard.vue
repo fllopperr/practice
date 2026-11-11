@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRequests } from '~/composable/useRequests'
+import { useRequests } from '../composable/useRequests'
 
 const { requests } = useRequests()
 const latestRequests = computed(() => requests.value.slice(0, 3))
