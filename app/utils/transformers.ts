@@ -2,7 +2,7 @@ import type {
 	ApiRequestDto,
 	LookupDictionaries,
 	WorkRequest
-} from '../types/types'
+} from '~/types/types'
 
 export const transformApiRequest = (
 	dto: ApiRequestDto,

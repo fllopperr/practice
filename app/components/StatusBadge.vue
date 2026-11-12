@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { RequestStatus } from '../types/types'
-import { STATUS_LABELS } from '../utils/mockData'
+import type { RequestStatus } from '~/types/types'
+import { STATUS_LABELS } from '~/utils/mockData'
 
 defineProps<{
 	status: RequestStatus

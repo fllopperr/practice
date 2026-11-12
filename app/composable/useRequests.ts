@@ -1,4 +1,3 @@
-import { transformApiRequest } from '~/utils/transformers'
 import type {
 	ApiCategory,
 	ApiCustomer,
@@ -7,7 +6,8 @@ import type {
 	Priority,
 	RequestStatus,
 	WorkRequest
-} from '../types/types'
+} from '~/types/types'
+import { transformApiRequest } from '~/utils/transformers'
 import { useDebounce } from './useDebounce'
 
 export type MockViewState = 'normal' | 'loading' | 'empty' | 'error'

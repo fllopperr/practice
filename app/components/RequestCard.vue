@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { WorkRequest } from '../types/types'
+import type { WorkRequest } from '~/types/types'
 
 defineProps<{
 	item: WorkRequest

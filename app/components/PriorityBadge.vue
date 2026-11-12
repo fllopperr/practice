@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Priority } from '../types/types'
-import { PRIORITY_LABELS } from '../utils/mockData'
+import type { Priority } from '~/types/types'
+import { PRIORITY_LABELS } from '~/utils/mockData'
 
 defineProps<{
 	priority: Priority

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { MockViewState } from '../composable/useRequests'
-import type { WorkRequest } from '../types/types'
+import type { MockViewState } from '~/composable/useRequests'
+import { usePreferencesStore } from '~/store/preferences'
+import type { WorkRequest } from '~/types/types'
 
 const props = withDefaults(
 	defineProps<{
@@ -27,6 +28,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const preferencesStore = usePreferencesStore()
 
 const startItem = computed(() => {
 	if (props.total === 0) return 0
@@ -409,17 +411,10 @@ const goToRequest = (id: string) => {
 				:key="item.id"
 				tabindex="0"
 				role="link"
-				style="
-					align-self: stretch;
-					height: 54px;
-					padding-left: 16px;
-					padding-right: 16px;
-					background: var(--color-bg-surface, #23204d);
-					justify-content: flex-start;
-					align-items: center;
-					gap: 12px;
-					display: inline-flex;
-					cursor: pointer;
+				:style="
+					preferencesStore.density === 'compact'
+						? 'align-self: stretch; height: 44px; padding-left: 16px; padding-right: 16px; padding-top: 8px; padding-bottom: 8px; background: var(--color-bg-surface, #23204D); justify-content: flex-start; align-items: center; gap: 12px; display: inline-flex; cursor: pointer'
+						: 'align-self: stretch; height: 54px; padding-left: 16px; padding-right: 16px; background: var(--color-bg-surface, #23204D); justify-content: flex-start; align-items: center; gap: 12px; display: inline-flex; cursor: pointer'
 				"
 				class="hover:bg-[#2F2A6A] wf-focus-ring"
 				@click="goToRequest(item.id)"

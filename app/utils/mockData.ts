@@ -1,4 +1,4 @@
-import type { Priority, RequestStatus } from '../types/types'
+import type { Priority, RequestStatus } from '~/types/types'
 
 export const STATUS_LABELS: Record<RequestStatus, string> = {
 	new: 'Новая',
