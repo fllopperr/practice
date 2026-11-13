@@ -2,54 +2,31 @@ import { defineStore } from 'pinia'
 
 export type ListDensity = 'comfortable' | 'compact'
 
-const STORAGE_KEY = 'wf_ui_preferences_v3'
-
 export const usePreferencesStore = defineStore('preferences', () => {
-	const density = ref<ListDensity>('comfortable')
-	const operatorName = ref('Анна Кузнецова')
-	const operatorEmail = ref('0000@mail.demo')
-	const showDensityBanner = ref(false)
+	const density = useCookie<ListDensity>('wf_pref_density', {
+		default: () => 'comfortable',
+		maxAge: 60 * 60 * 24 * 365
+	})
 
-	if (import.meta.client) {
-		const raw = localStorage.getItem(STORAGE_KEY)
-		if (raw) {
-			try {
-				const parsed = JSON.parse(raw) as {
-					density?: ListDensity
-					operatorName?: string
-					operatorEmail?: string
-				}
-				if (parsed.density === 'compact' || parsed.density === 'comfortable') {
-					density.value = parsed.density
-				}
-				if (parsed.operatorName) operatorName.value = parsed.operatorName
-				if (parsed.operatorEmail) operatorEmail.value = parsed.operatorEmail
-			} catch {}
-		}
-	}
+	const operatorName = useCookie<string>('wf_pref_name', {
+		default: () => 'Анна Кузнецова',
+		maxAge: 60 * 60 * 24 * 365
+	})
 
-	const persist = () => {
-		if (!import.meta.client) return
-		localStorage.setItem(
-			STORAGE_KEY,
-			JSON.stringify({
-				density: density.value,
-				operatorName: operatorName.value,
-				operatorEmail: operatorEmail.value
-			})
-		)
-	}
+	const operatorEmail = useCookie<string>('wf_pref_email', {
+		default: () => '0000@mail.demo',
+		maxAge: 60 * 60 * 24 * 365
+	})
+
+	const showDensityBanner = computed(() => density.value === 'compact')
 
 	const setDensity = (value: ListDensity) => {
 		density.value = value
-		showDensityBanner.value = value === 'compact'
-		persist()
 	}
 
 	const saveProfile = (name: string, email: string) => {
 		operatorName.value = name
 		operatorEmail.value = email
-		persist()
 	}
 
 	return {

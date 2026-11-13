@@ -1,4 +1,19 @@
 <script setup lang="ts">
+useSeoMeta({
+	title: 'WorkFlow — Поддержка, в которой ничего не теряется',
+	description:
+		'От первого обращения до решения — управляйте сервисными заявками, назначайте исполнителей и держите сроки SLA под контролем.',
+	ogTitle: 'WorkFlow — Поддержка, в которой ничего не теряется',
+	ogDescription:
+		'Система управления сервисными заявками для всей команды: статусы, приоритеты и контроль сроков.',
+	ogType: 'website',
+	ogUrl: 'https://workflow.demo/'
+})
+
+useHead({
+	link: [{ rel: 'canonical', href: 'https://workflow.demo/' }]
+})
+
 definePageMeta({
 	layout: 'public'
 })

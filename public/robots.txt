@@ -1,2 +1,11 @@
-User-Agent: *
-Disallow:
+User-agent: *
+Allow: /
+Allow: /faq
+Allow: /help
+Allow: /articles
+Disallow: /dashboard
+Disallow: /requests
+Disallow: /profile
+Disallow: /api/
+
+Sitemap: https://workflow.demo/sitemap.xml

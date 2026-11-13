@@ -3,7 +3,11 @@ import { Menu, X } from 'lucide-vue-next'
 
 const route = useRoute()
 const mobileOpen = ref(false)
-const isLoginPage = computed(() => route.path === '/login')
+
+const isAuthFormPage = computed(
+	() => route.path === '/login' || route.path === '/register'
+)
+const isLandingPage = computed(() => route.path === '/')
 
 watch(
 	() => route.fullPath,
@@ -15,11 +19,26 @@ watch(
 
 <template>
 	<div class="min-h-screen flex flex-col wf-bg-radial text-color-text-primary">
-		<header v-if="isLoginPage" class="w-full max-w-[1280px] mx-auto">
-			<div class="w-40 p-6 inline-flex justify-start items-start gap-4">
+		<header v-if="isAuthFormPage" class="w-full max-w-[1280px] mx-auto">
+			<div
+				style="
+					padding: 24px;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 16px;
+					display: inline-flex;
+				"
+			>
 				<NuxtLink
 					to="/"
-					class="text-color-text-inverse text-xl font-semibold font-['Montserrat'] leading-7 wf-focus-ring rounded-sm"
+					style="
+						color: var(--color-text-inverse, white);
+						font-size: 20px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 28px;
+					"
+					class="wf-focus-ring rounded-sm"
 				>
 					WorkFlow
 				</NuxtLink>
@@ -28,93 +47,151 @@ watch(
 
 		<header
 			v-else
-			class="w-full max-w-[1280px] mx-auto flex items-center gap-6 px-4 py-8 md:px-8 lg:px-16"
+			:style="
+				!isLandingPage ? 'background: var(--color-bg-surface, #23204D);' : ''
+			"
+			class="w-full"
 		>
-			<NuxtLink
-				to="/"
-				class="flex-1 text-color-text-inverse text-xl font-semibold font-['Montserrat'] leading-7 wf-focus-ring rounded-sm"
-			>
-				WorkFlow
-			</NuxtLink>
-
-			<nav
-				aria-label="Публичное меню"
-				class="hidden md:flex items-center gap-6"
+			<div
+				:class="isLandingPage ? 'py-8' : 'py-6'"
+				class="max-w-[1280px] mx-auto px-4 md:px-8 lg:px-16 flex justify-start items-center gap-6"
 			>
 				<NuxtLink
 					to="/"
-					class="text-color-text-primary text-sm font-normal font-['Nunito_Sans'] leading-5 hover:text-indigo-400 wf-focus-ring rounded-sm px-1"
+					style="
+						flex: 1 1 0;
+						color: var(--color-text-inverse, white);
+						font-size: 20px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 28px;
+					"
+					class="wf-focus-ring rounded-sm"
 				>
-					Главная
+					WorkFlow
 				</NuxtLink>
-				<a
-					href="#steps"
-					class="text-color-text-primary text-sm font-normal font-['Nunito_Sans'] leading-5 hover:text-indigo-400 wf-focus-ring rounded-sm px-1"
-				>
-					Статьи
-				</a>
-				<a
-					href="#features"
-					class="text-color-text-primary text-sm font-normal font-['Nunito_Sans'] leading-5 hover:text-indigo-400 wf-focus-ring rounded-sm px-1"
-				>
-					Помощь
-				</a>
-				<a
-					href="#features"
-					class="text-color-text-primary text-sm font-normal font-['Nunito_Sans'] leading-5 hover:text-indigo-400 wf-focus-ring rounded-sm px-1"
-				>
-					FAQ
-				</a>
-			</nav>
 
-			<NuxtLink
-				to="/login"
-				class="h-10 px-4 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-strong hover:bg-color-bg-subtle inline-flex justify-center items-center gap-2 text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
-			>
-				Войти
-			</NuxtLink>
+				<nav
+					aria-label="Публичная навигация"
+					class="hidden md:flex items-center gap-6"
+				>
+					<NuxtLink
+						to="/"
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 400;
+							line-height: 20px;
+						"
+						class="hover:text-[#79CEE8] wf-focus-ring rounded-sm"
+					>
+						Главная
+					</NuxtLink>
+					<NuxtLink
+						to="/articles"
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 400;
+							line-height: 20px;
+						"
+						class="hover:text-[#79CEE8] wf-focus-ring rounded-sm"
+					>
+						Статьи
+					</NuxtLink>
+					<NuxtLink
+						to="/help"
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 400;
+							line-height: 20px;
+						"
+						class="hover:text-[#79CEE8] wf-focus-ring rounded-sm"
+					>
+						Помощь
+					</NuxtLink>
+					<NuxtLink
+						to="/faq"
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 400;
+							line-height: 20px;
+						"
+						class="hover:text-[#79CEE8] wf-focus-ring rounded-sm"
+					>
+						FAQ
+					</NuxtLink>
+				</nav>
 
-			<button
-				type="button"
-				aria-label="Меню"
-				class="md:hidden size-5 flex items-center justify-center text-color-text-secondary hover:text-white wf-focus-ring rounded-sm"
-				@click="mobileOpen = !mobileOpen"
-			>
-				<X v-if="mobileOpen" class="size-5" />
-				<Menu v-else class="size-5" />
-			</button>
+				<NuxtLink
+					to="/login"
+					data-state="default"
+					data-variant="secondary"
+					style="
+						height: 40px;
+						padding-left: 16px;
+						padding-right: 16px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-strong, #615b94) solid;
+						outline-offset: -1px;
+						justify-content: center;
+						align-items: center;
+						gap: 8px;
+						display: flex;
+					"
+					class="wf-focus-ring"
+				>
+					<span
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 500;
+							line-height: 20px;
+						"
+					>
+						Войти
+					</span>
+				</NuxtLink>
+
+				<button
+					type="button"
+					aria-label="Меню"
+					class="md:hidden size-5 flex items-center justify-center text-color-text-secondary hover:text-white wf-focus-ring rounded-sm"
+					@click="mobileOpen = !mobileOpen"
+				>
+					<X v-if="mobileOpen" class="size-5" />
+					<Menu v-else class="size-5" />
+				</button>
+			</div>
 		</header>
 
 		<div
-			v-if="mobileOpen && !isLoginPage"
-			class="md:hidden bg-color-bg-surface border-y border-[#353263] px-4 py-3 flex flex-col gap-2 text-sm"
+			v-if="mobileOpen && !isAuthFormPage"
+			class="md:hidden bg-color-bg-surface border-y border-[#413E74] px-4 py-3 flex flex-col gap-2 text-sm"
 		>
 			<NuxtLink to="/" class="py-1 text-color-text-primary">Главная</NuxtLink>
-			<a
-				href="#steps"
-				class="py-1 text-color-text-secondary"
-				@click="mobileOpen = false"
-				>Статьи</a
+			<NuxtLink to="/articles" class="py-1 text-color-text-primary"
+				>Статьи</NuxtLink
 			>
-			<a
-				href="#features"
-				class="py-1 text-color-text-secondary"
-				@click="mobileOpen = false"
-				>Помощь</a
+			<NuxtLink to="/help" class="py-1 text-color-text-primary"
+				>Помощь</NuxtLink
 			>
-			<a
-				href="#features"
-				class="py-1 text-color-text-secondary"
-				@click="mobileOpen = false"
-				>FAQ</a
-			>
+			<NuxtLink to="/faq" class="py-1 text-color-text-primary">FAQ</NuxtLink>
 		</div>
 
 		<main class="flex-1 flex flex-col w-full max-w-[1280px] mx-auto">
 			<slot />
 		</main>
 
-		<footer v-if="!isLoginPage" class="w-full bg-[#1b1a2e]">
+		<footer v-if="isLandingPage" class="w-full bg-[#1b1a2e]">
 			<div
 				class="max-w-[1280px] mx-auto p-6 flex flex-col lg:flex-row items-start lg:items-center gap-6"
 			>
@@ -124,9 +201,11 @@ watch(
 					WorkFlow © 2026
 				</div>
 				<div
-					class="text-color-text-accent text-xs font-medium font-['Montserrat'] leading-4 whitespace-nowrap"
+					class="flex items-center gap-2 text-color-text-accent text-xs font-medium font-['Montserrat'] leading-4 whitespace-nowrap"
 				>
-					Помощь · FAQ
+					<NuxtLink to="/help" class="hover:underline">Помощь</NuxtLink>
+					<span>·</span>
+					<NuxtLink to="/faq" class="hover:underline">FAQ</NuxtLink>
 				</div>
 			</div>
 		</footer>

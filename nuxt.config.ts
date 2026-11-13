@@ -1,15 +1,27 @@
 export default defineNuxtConfig({
-	modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
-	compatibilityDate: '2025-07-15',
-	devtools: { enabled: true },
+	compatibilityDate: '2024-11-01',
 	future: {
 		compatibilityVersion: 4
 	},
+	modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
+	ssr: true,
+	routeRules: {
+		'/': { ssr: true, swr: 3600 },
+		'/faq': { ssr: true, swr: 3600 },
+		'/help': { ssr: true, swr: 3600 },
+		'/articles': { ssr: true, swr: 3600 },
+		'/articles/**': { ssr: true, swr: 3600 },
+		'/dashboard': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+		'/requests': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+		'/requests/**': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } },
+		'/profile': { headers: { 'X-Robots-Tag': 'noindex, nofollow' } }
+	},
 	app: {
 		head: {
-			title: 'WorkFlow',
+			titleTemplate: '%s',
 			htmlAttrs: { lang: 'ru' },
 			meta: [
+				{ charset: 'utf-8' },
 				{ name: 'viewport', content: 'width=device-width, initial-scale=1' }
 			],
 			link: [
