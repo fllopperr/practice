@@ -1,7 +1,9 @@
-import type { ApiRequestsListResponse } from '~/types/types'
+import type { ApiRequestsListResponse } from '../../../shared/types'
+import { getServerSessionUser } from '../../utils/auth'
 import { CUSTOMERS_DB, REQUESTS_DB, USERS_DB } from '../../utils/db'
 
 export default defineEventHandler((event): ApiRequestsListResponse => {
+	const user = getServerSessionUser(event)
 	const query = getQuery(event)
 
 	if (query.error === '429') {
@@ -28,12 +30,24 @@ export default defineEventHandler((event): ApiRequestsListResponse => {
 	const pageSize = Math.max(1, Number(query.pageSize) || 12)
 	const partialMode = query.partial === '1'
 
-	const sourceList = REQUESTS_DB.map(item => {
+	let sourceList = REQUESTS_DB.map(item => {
 		if (partialMode && item.id === '1038') {
 			return { ...item, title: null, customerId: null }
 		}
-		return item
+		return { ...item }
 	})
+
+	if (user.role === 'Client') {
+		sourceList = sourceList.filter(
+			r =>
+				r.customerId === (user.customerId || 'cust-vektor') &&
+				Number(r.id) >= 1031
+		)
+	} else if (user.role === 'Agent') {
+		sourceList = sourceList
+			.filter(r => ['1042', '1037', '1033'].includes(r.id))
+			.map(r => (r.id === '1042' ? { ...r, status: 'assigned' } : r))
+	}
 
 	let filtered = sourceList.filter(item => {
 		const customerName =

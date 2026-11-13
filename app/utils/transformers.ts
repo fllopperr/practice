@@ -2,7 +2,7 @@ import type {
 	ApiRequestDto,
 	LookupDictionaries,
 	WorkRequest
-} from '~/types/types'
+} from '../../shared/types'
 
 export const transformApiRequest = (
 	dto: ApiRequestDto,
@@ -30,14 +30,20 @@ export const transformApiRequest = (
 		title: hasMissingTitle ? 'Без названия' : dto.title!.trim(),
 		description: dto.description?.trim() || 'Описание проблемы не указано.',
 		client: hasMissingCustomer ? 'Клиент не указан' : customerObj!.name,
+		customerId: dto.customerId ?? null,
 		category: categoryObj?.name || 'Доступ и учётные записи',
 		assignee: resolvedAssignee,
+		assigneeId: dto.assigneeId ?? null,
 		status: dto.status || 'new',
 		priority: dto.priority || 'normal',
 		createdAtText: dto.createdAt || 'Создана недавно',
 		dueDateText: dto.dueDate || 'Сегодня, 13:14',
+		resolutionText: dto.resolutionText ?? null,
 		comments: dto.comments ?? [],
 		history: dto.history ?? [],
+		attachments: dto.attachments ?? [
+			{ id: 'att-1', fileName: 'error-login.png', sizeText: '245 КБ' }
+		],
 		isMissingOptionalFields: hasMissingTitle || hasMissingCustomer
 	}
 }

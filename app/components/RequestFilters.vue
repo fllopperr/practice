@@ -9,6 +9,7 @@ import {
 
 defineProps<{
 	threeColumnsOnly?: boolean
+	fourColumnsWithoutAssignee?: boolean
 }>()
 
 const { searchQuery, statusFilter, priorityFilter, assigneeFilter, sortBy } =
@@ -21,62 +22,143 @@ const priorityList = Object.entries(PRIORITY_LABELS) as [Priority, string][]
 <template>
 	<div
 		v-if="threeColumnsOnly"
-		class="self-stretch flex flex-col md:flex-row justify-start items-start gap-3"
+		style="
+			align-self: stretch;
+			justify-content: flex-start;
+			align-items: flex-start;
+			gap: 12px;
+			display: inline-flex;
+			flex-wrap: wrap;
+		"
 	>
 		<div
-			class="w-full md:flex-1 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				flex: 1 1 0;
+				min-width: 240px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="s-3"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Поиск</label
 			>
-				Поиск
-			</label>
 			<input
-				id="s-3"
 				v-model="searchQuery"
 				type="text"
 				placeholder="Номер или название заявки"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-primary placeholder:text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			/>
 		</div>
-
 		<div
-			class="w-full md:w-44 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				width: 180px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="st-3"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Статус</label
 			>
-				Статус
-			</label>
 			<select
-				id="st-3"
 				v-model="statusFilter"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
-				<option value="all">Все статусы</option>
+				<option value="all">Все статусы ▾</option>
 				<option v-for="[val, label] in statusList" :key="val" :value="val">
 					{{ label }}
 				</option>
 			</select>
 		</div>
-
 		<div
-			class="w-full md:w-44 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				width: 180px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="pr-3"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Приоритет</label
 			>
-				Приоритет
-			</label>
 			<select
-				id="pr-3"
 				v-model="priorityFilter"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
-				<option value="all">Все приоритеты</option>
+				<option value="all">Все приоритеты ▾</option>
 				<option v-for="[val, label] in priorityList" :key="val" :value="val">
 					{{ label }}
 				</option>
@@ -85,40 +167,97 @@ const priorityList = Object.entries(PRIORITY_LABELS) as [Priority, string][]
 	</div>
 
 	<div
-		v-else
-		class="self-stretch flex flex-col md:flex-row md:flex-wrap lg:flex-nowrap justify-start items-start gap-3"
+		v-else-if="fourColumnsWithoutAssignee"
+		style="
+			align-self: stretch;
+			justify-content: flex-start;
+			align-items: flex-start;
+			gap: 12px;
+			display: inline-flex;
+			flex-wrap: wrap;
+		"
 	>
 		<div
-			class="w-full md:w-80 lg:flex-1 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				flex: 1 1 0;
+				min-width: 240px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="f-search"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Поиск</label
 			>
-				Поиск
-			</label>
 			<input
-				id="f-search"
 				v-model="searchQuery"
 				type="text"
 				placeholder="Номер или название заявки"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default hover:outline-slate-500 focus:outline-2 focus:outline-indigo-500 text-color-text-primary placeholder:text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			/>
 		</div>
-
 		<div
-			class="w-full md:w-80 lg:w-44 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				width: 180px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="f-status"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Статус</label
 			>
-				Статус
-			</label>
 			<select
-				id="f-status"
 				v-model="statusFilter"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default hover:outline-slate-500 focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
 				<option value="all">Все статусы</option>
 				<option v-for="[val, label] in statusList" :key="val" :value="val">
@@ -126,20 +265,44 @@ const priorityList = Object.entries(PRIORITY_LABELS) as [Priority, string][]
 				</option>
 			</select>
 		</div>
-
 		<div
-			class="w-full md:w-80 lg:w-44 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				width: 180px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="f-priority"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Приоритет</label
 			>
-				Приоритет
-			</label>
 			<select
-				id="f-priority"
 				v-model="priorityFilter"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default hover:outline-slate-500 focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
 				<option value="all">Все приоритеты</option>
 				<option v-for="[val, label] in priorityList" :key="val" :value="val">
@@ -147,44 +310,281 @@ const priorityList = Object.entries(PRIORITY_LABELS) as [Priority, string][]
 				</option>
 			</select>
 		</div>
-
 		<div
-			class="w-full md:w-80 lg:w-52 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				width: 276px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="f-assignee"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Сортировка</label
 			>
-				Назначение
-			</label>
 			<select
-				id="f-assignee"
-				v-model="assigneeFilter"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default hover:outline-slate-500 focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				v-model="sortBy"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
-				<option value="all">Все заявки</option>
+				<option value="newest">Сначала новые ▾</option>
+				<option value="oldest">Сначала старые ▾</option>
+			</select>
+		</div>
+	</div>
+
+	<div
+		v-else
+		style="
+			align-self: stretch;
+			justify-content: flex-start;
+			align-items: flex-start;
+			gap: 12px;
+			display: inline-flex;
+			flex-wrap: wrap;
+		"
+	>
+		<div
+			style="
+				flex: 1 1 0;
+				min-width: 220px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
+		>
+			<label
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Поиск</label
+			>
+			<input
+				v-model="searchQuery"
+				type="text"
+				placeholder="Номер или название заявки"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
+			/>
+		</div>
+		<div
+			style="
+				width: 180px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
+		>
+			<label
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Статус</label
+			>
+			<select
+				v-model="statusFilter"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
+			>
+				<option value="all">Все статусы ▾</option>
+				<option v-for="[val, label] in statusList" :key="val" :value="val">
+					{{ label }}
+				</option>
+			</select>
+		</div>
+		<div
+			style="
+				width: 180px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
+		>
+			<label
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Приоритет</label
+			>
+			<select
+				v-model="priorityFilter"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
+			>
+				<option value="all">Все приоритеты ▾</option>
+				<option v-for="[val, label] in priorityList" :key="val" :value="val">
+					{{ label }}
+				</option>
+			</select>
+		</div>
+		<div
+			style="
+				width: 212px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
+		>
+			<label
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Назначение</label
+			>
+			<select
+				v-model="assigneeFilter"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
+			>
+				<option value="all">Все заявки ▾</option>
 				<option v-for="a in ASSIGNEE_OPTIONS" :key="a" :value="a">
 					{{ a }}
 				</option>
 			</select>
 		</div>
-
 		<div
-			class="w-full md:w-80 lg:w-64 h-20 inline-flex flex-col justify-start items-start gap-2"
+			style="
+				width: 268px;
+				height: 80px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 8px;
+				display: inline-flex;
+			"
 		>
 			<label
-				for="f-sort"
-				class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 600;
+					line-height: 16px;
+				"
+				>Сортировка</label
 			>
-				Сортировка
-			</label>
 			<select
-				id="f-sort"
 				v-model="sortBy"
-				class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default hover:outline-slate-500 focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					width: 100%;
+					padding: 14px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
-				<option value="newest">Сначала новые</option>
-				<option value="oldest">Сначала старые</option>
+				<option value="newest">Сначала новые ▾</option>
+				<option value="oldest">Сначала старые ▾</option>
 			</select>
 		</div>
 	</div>

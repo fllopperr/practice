@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { Bell, Menu, X } from 'lucide-vue-next'
+import { useAuthStore } from '~/store/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const mobileMenuOpen = ref(false)
+
+await callOnce(() => authStore.fetchSession())
 
 watch(
 	() => route.fullPath,
@@ -13,6 +17,9 @@ watch(
 
 const handleKey = (e: KeyboardEvent) => {
 	if (e.key === 'Escape') mobileMenuOpen.value = false
+	if (e.altKey && e.key === '1') authStore.switchRole('Operator')
+	if (e.altKey && e.key === '2') authStore.switchRole('Client')
+	if (e.altKey && e.key === '3') authStore.switchRole('Agent')
 }
 
 onMounted(() => window.addEventListener('keydown', handleKey))
@@ -26,8 +33,16 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 				class="self-stretch px-4 md:px-8 lg:px-16 py-6 inline-flex justify-start items-center gap-4"
 			>
 				<NuxtLink
-					to="/dashboard"
-					class="flex-1 justify-start text-color-text-primary text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring rounded-sm"
+					to="/"
+					style="
+						flex: 1 1 0;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
+					class="wf-focus-ring rounded-sm"
 				>
 					WorkFlow
 				</NuxtLink>
@@ -38,13 +53,27 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 				>
 					<NuxtLink
 						to="/dashboard"
-						class="justify-start text-color-text-primary hover:text-indigo-400 text-sm font-medium font-['Montserrat'] leading-5 px-2 py-1 rounded-lg wf-focus-ring"
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 500;
+							line-height: 20px;
+						"
+						class="hover:text-indigo-400 px-2 py-1 rounded-lg wf-focus-ring"
 					>
 						Обзор
 					</NuxtLink>
 					<NuxtLink
 						to="/requests"
-						class="justify-start text-color-text-primary hover:text-indigo-400 text-sm font-medium font-['Montserrat'] leading-5 px-2 py-1 rounded-lg wf-focus-ring"
+						style="
+							color: var(--color-text-primary, #e8e7ec);
+							font-size: 14px;
+							font-family: Montserrat;
+							font-weight: 500;
+							line-height: 20px;
+						"
+						class="hover:text-indigo-400 px-2 py-1 rounded-lg wf-focus-ring"
 					>
 						Заявки
 					</NuxtLink>
@@ -63,18 +92,39 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 					class="inline-flex items-center gap-4 rounded-lg wf-focus-ring"
 				>
 					<div
-						class="size-8 bg-color-bg-accent-soft rounded-[999px] flex justify-center items-center"
+						style="
+							width: 32px;
+							height: 32px;
+							background: var(--color-bg-accent-soft, #302b69);
+							border-radius: 999px;
+							justify-content: center;
+							align-items: center;
+							display: flex;
+						"
 					>
 						<div
-							class="justify-start text-color-text-accent text-xs font-semibold font-['Montserrat'] leading-4"
+							style="
+								color: var(--color-text-accent, #79cee8);
+								font-size: 12px;
+								font-family: Montserrat;
+								font-weight: 600;
+								line-height: 16px;
+							"
 						>
-							АК
+							{{ authStore.user.initials }}
 						</div>
 					</div>
 					<div
-						class="hidden lg:block justify-start text-color-text-secondary text-xs font-medium font-['Montserrat'] leading-4"
+						class="hidden lg:block"
+						style="
+							color: var(--color-text-secondary, #b9b3d4);
+							font-size: 12px;
+							font-family: Montserrat;
+							font-weight: 500;
+							line-height: 16px;
+						"
 					>
-						Оператор
+						{{ authStore.user.roleLabel }}
 					</div>
 				</NuxtLink>
 
@@ -100,7 +150,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 					>Заявки</NuxtLink
 				>
 				<NuxtLink to="/profile" class="text-color-text-primary"
-					>Профиль</NuxtLink
+					>Профиль ({{ authStore.user.roleLabel }})</NuxtLink
 				>
 			</div>
 

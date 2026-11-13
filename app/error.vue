@@ -1,4 +1,12 @@
 <script setup lang="ts">
+const props = defineProps<{
+	error: {
+		statusCode?: number
+		statusMessage?: string
+	}
+}>()
+
+const is403 = computed(() => props.error?.statusCode === 403)
 const handleClearError = () => clearError({ redirect: '/requests' })
 </script>
 
@@ -7,29 +15,89 @@ const handleClearError = () => clearError({ redirect: '/requests' })
 		class="w-full min-h-screen wf-bg-radial inline-flex flex-col justify-center items-center"
 	>
 		<div
-			class="w-full max-w-[720px] p-8 md:p-16 flex flex-col justify-start items-center gap-6"
+			style="
+				width: 720px;
+				max-width: 100%;
+				padding: 64px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: center;
+				gap: 24px;
+				display: flex;
+			"
 		>
 			<div
-				class="self-stretch text-center justify-start text-color-text-accent text-3xl font-bold font-['Montserrat'] leading-10"
+				style="
+					align-self: stretch;
+					text-align: center;
+					color: var(--color-text-accent, #79cee8);
+					font-size: 32px;
+					font-family: Montserrat;
+					font-weight: 700;
+					line-height: 40px;
+				"
 			>
-				404
+				{{ is403 ? '403' : '404' }}
 			</div>
 			<div
-				class="self-stretch text-center justify-start text-color-text-primary text-3xl font-bold font-['Montserrat'] leading-9"
+				style="
+					align-self: stretch;
+					text-align: center;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 28px;
+					font-family: Montserrat;
+					font-weight: 700;
+					line-height: 36px;
+				"
 			>
-				Страница не найдена
+				{{ is403 ? 'Нет доступа' : 'Страница не найдена' }}
 			</div>
 			<div
-				class="self-stretch text-center justify-start text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					text-align: center;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
-				Проверьте адрес или вернитесь к заявкам.
+				{{
+					is403
+						? 'Эта страница недоступна вашей роли.'
+						: 'Проверьте адрес или вернитесь к заявкам.'
+				}}
 			</div>
 			<button
 				type="button"
-				class="h-10 px-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-sm inline-flex justify-center items-center gap-2 text-color-text-inverse text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
+				data-state="default"
+				data-variant="primary"
+				style="
+					height: 40px;
+					padding-left: 16px;
+					padding-right: 16px;
+					background: linear-gradient(90deg, #635bff 0%, #c548ab 100%);
+					border-radius: 4px;
+					justify-content: center;
+					align-items: center;
+					gap: 8px;
+					display: inline-flex;
+					cursor: pointer;
+				"
 				@click="handleClearError"
 			>
-				Вернуться к заявкам
+				<span
+					style="
+						color: var(--color-text-inverse, white);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
+				>
+					Вернуться к заявкам
+				</span>
 			</button>
 		</div>
 	</div>

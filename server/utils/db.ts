@@ -2,8 +2,56 @@ import type {
 	ApiCategory,
 	ApiCustomer,
 	ApiRequestDto,
-	ApiUser
-} from '~/types/types'
+	ApiUser,
+	SessionUser
+} from '../../shared/types'
+
+export const SESSION_USERS: SessionUser[] = [
+	{
+		id: 'u-anna',
+		name: 'Анна К.',
+		fullName: 'Анна Кузнецова',
+		email: '0000@mail.demo',
+		role: 'Operator',
+		roleLabel: 'Оператор',
+		initials: 'АК',
+		customerId: null,
+		isActive: true
+	},
+	{
+		id: 'u-maria',
+		name: 'Мария Смирнова',
+		fullName: 'Мария Смирнова',
+		email: 'client@mail.demo',
+		role: 'Client',
+		roleLabel: 'Клиент',
+		initials: 'МС',
+		customerId: 'cust-vektor',
+		isActive: true
+	},
+	{
+		id: 'u-brungilda',
+		name: 'Брунгильда Б.',
+		fullName: 'Брунгильда Брунгильдовна',
+		email: 'agent@mail.demo',
+		role: 'Agent',
+		roleLabel: 'Исполнитель',
+		initials: 'ББ',
+		customerId: null,
+		isActive: true
+	},
+	{
+		id: 'u-admin',
+		name: 'Данил Г.',
+		fullName: 'Данил Горбунов',
+		email: 'admin@mail.demo',
+		role: 'Admin',
+		roleLabel: 'Администратор',
+		initials: 'ДГ',
+		customerId: null,
+		isActive: true
+	}
+]
 
 export const USERS_DB: ApiUser[] = [
 	{
@@ -11,21 +59,36 @@ export const USERS_DB: ApiUser[] = [
 		name: 'Брунгильда Б.',
 		fullName: 'Брунгильда Брунгильдовна',
 		role: 'Исполнитель',
-		initials: 'ББ'
+		userRole: 'Agent',
+		initials: 'ББ',
+		isActive: true
 	},
 	{
 		id: 'u-oleg',
 		name: 'Олег С.',
 		fullName: 'Олег Смирнов',
 		role: 'Исполнитель',
-		initials: 'ОС'
+		userRole: 'Agent',
+		initials: 'ОС',
+		isActive: true
+	},
+	{
+		id: 'u-oleg-deactivated',
+		name: 'Олег Соколов · деактивирован',
+		fullName: 'Олег Соколов · деактивирован',
+		role: 'Исполнитель',
+		userRole: 'Agent',
+		initials: 'ОС',
+		isActive: false
 	},
 	{
 		id: 'u-anna',
 		name: 'Анна К.',
 		fullName: 'Анна Кузнецова',
 		role: 'Оператор',
-		initials: 'АК'
+		userRole: 'Operator',
+		initials: 'АК',
+		isActive: true
 	}
 ]
 
@@ -57,6 +120,8 @@ export const REQUESTS_DB: ApiRequestDto[] = [
 		priority: 'high',
 		createdAt: 'Создана 5 октября, 09:14',
 		dueDate: 'Сегодня, 13:14',
+		resolutionText:
+			'Восстановлены права группы отдела продаж. Доступ к CRM проверен, ошибка больше не воспроизводится.',
 		comments: [
 			{
 				id: 'c-1',
@@ -85,6 +150,9 @@ export const REQUESTS_DB: ApiRequestDto[] = [
 				text: 'Оператор назначил Брунгильду Брунгильдовну'
 			},
 			{ id: 'h-3', time: '10:00', text: 'Брунгильда начала работу' }
+		],
+		attachments: [
+			{ id: 'att-1', fileName: 'error-login.png', sizeText: '245 КБ' }
 		]
 	},
 	{

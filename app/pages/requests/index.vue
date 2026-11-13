@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { useRequests } from '~/composable/useRequests'
+import { useAuthStore } from '~/store/auth'
 import { usePreferencesStore } from '~/store/preferences'
 import { useRequestUiStore } from '~/store/requestUi'
-import type { Priority, RequestStatus } from '~/types/types'
+import type { RequestStatus } from '../../../shared/types/index'
 
 const preferencesStore = usePreferencesStore()
 const requestUiStore = useRequestUiStore()
+const authStore = useAuthStore()
+
+const isCreateModalOpen = ref(false)
 
 const {
 	filteredRequests,
@@ -26,6 +30,16 @@ const {
 	refreshRequests
 } = useRequests()
 
+watch(
+	() => authStore.user.role,
+	() => {
+		refreshRequests()
+	}
+)
+
+const isClientRole = computed(() => authStore.user.role === 'Client')
+const isAgentRole = computed(() => authStore.user.role === 'Agent')
+
 const isCompactHeaderLayout = computed(
 	() =>
 		viewState.value !== 'normal' ||
@@ -38,7 +52,7 @@ const handleUndoFromList = async () => {
 	if (!undo) return
 
 	await $fetch(`/api/requests/${undo.requestId}`, {
-		isMethod: 'PATCH',
+		method: 'PATCH',
 		body:
 			undo.field === 'priority'
 				? { priority: undo.previousValue as Priority }
@@ -57,6 +71,7 @@ const onKeydown = (e: KeyboardEvent) => {
 	const tag = (e.target as HTMLElement)?.tagName
 	if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
 
+	if (e.key === '0') isCreateModalOpen.value = !isCreateModalOpen.value
 	if (e.key === '1') {
 		requestUiStore.clearBanners()
 		resetFilters()
@@ -66,12 +81,9 @@ const onKeydown = (e: KeyboardEvent) => {
 	if (e.key === '4') errorMode.value = '500'
 	if (e.key === '5') errorMode.value = '429'
 	if (e.key === '6') partialMode.value = !partialMode.value
-	if (e.key === '7') {
+	if (e.key === '7')
 		requestUiStore.recordPriorityChange('1042', 'critical', 'high')
-	}
-	if (e.key === '8') {
-		requestUiStore.setRollbackError('1042', 409)
-	}
+	if (e.key === '8') requestUiStore.setRollbackError('1042', 409)
 	if (e.key === '9') {
 		preferencesStore.setDensity(
 			preferencesStore.density === 'compact' ? 'comfortable' : 'compact'
@@ -84,7 +96,113 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-	<template v-if="isCompactHeaderLayout">
+	<template v-if="isClientRole">
+		<div
+			style="
+				align-self: stretch;
+				color: var(--color-text-primary, #e8e7ec);
+				font-size: 28px;
+				font-family: Montserrat;
+				font-weight: 700;
+				line-height: 36px;
+			"
+		>
+			Мои заявки
+		</div>
+		<div
+			style="
+				align-self: stretch;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
+		>
+			Все обращения в одном месте
+		</div>
+
+		<button
+			type="button"
+			data-state="default"
+			data-variant="primary"
+			style="
+				height: 40px;
+				padding-left: 16px;
+				padding-right: 16px;
+				background: linear-gradient(90deg, #635bff 0%, #c548ab 100%);
+				border-radius: 4px;
+				justify-content: center;
+				align-items: center;
+				gap: 8px;
+				display: inline-flex;
+				cursor: pointer;
+			"
+			class="wf-focus-ring"
+			@click="isCreateModalOpen = true"
+		>
+			<span
+				style="
+					color: var(--color-text-inverse, white);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 500;
+					line-height: 20px;
+				"
+			>
+				Создать заявку
+			</span>
+		</button>
+
+		<RequestFilters four-columns-without-assignee />
+
+		<RequestList
+			:items="filteredRequests"
+			:state="viewState"
+			:show-pagination="false"
+			@reset="resetFilters"
+			@retry="retryAfterError"
+		/>
+	</template>
+
+	<template v-else-if="isAgentRole">
+		<div
+			style="
+				align-self: stretch;
+				color: var(--color-text-primary, #e8e7ec);
+				font-size: 28px;
+				font-family: Montserrat;
+				font-weight: 700;
+				line-height: 36px;
+			"
+		>
+			Заявки
+		</div>
+		<div
+			style="
+				align-self: stretch;
+				color: var(--color-text-secondary, #b9b3d4);
+				font-size: 14px;
+				font-family: Montserrat;
+				font-weight: 400;
+				line-height: 20px;
+			"
+		>
+			Назначенные вам обращения
+		</div>
+
+		<RequestFilters four-columns-without-assignee />
+
+		<RequestList
+			:items="filteredRequests"
+			:state="viewState"
+			:show-pagination="false"
+			@reset="resetFilters"
+			@retry="retryAfterError"
+		/>
+	</template>
+
+	<template v-else-if="isCompactHeaderLayout">
 		<div
 			style="
 				align-self: stretch;
@@ -248,7 +366,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 			</button>
 		</div>
 
-		<div
+		<button
+			type="button"
 			data-state="default"
 			data-variant="primary"
 			style="
@@ -263,9 +382,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 				display: inline-flex;
 				cursor: pointer;
 			"
-			@click="resetFilters"
+			@click="isCreateModalOpen = true"
 		>
-			<div
+			<span
 				style="
 					color: var(--color-text-inverse, white);
 					font-size: 14px;
@@ -275,8 +394,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 				"
 			>
 				Создать заявку
-			</div>
-		</div>
+			</span>
+		</button>
 
 		<RequestFilters three-columns-only />
 
@@ -469,7 +588,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 			</div>
 		</div>
 
-		<div
+		<button
+			type="button"
 			data-state="default"
 			data-variant="primary"
 			style="
@@ -484,8 +604,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 				display: inline-flex;
 				cursor: pointer;
 			"
+			class="wf-focus-ring"
+			@click="isCreateModalOpen = true"
 		>
-			<div
+			<span
 				style="
 					color: var(--color-text-inverse, white);
 					font-size: 14px;
@@ -495,8 +617,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 				"
 			>
 				Создать заявку
-			</div>
-		</div>
+			</span>
+		</button>
 
 		<RequestFilters />
 
@@ -511,4 +633,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 			@page-change="setPage"
 		/>
 	</template>
+
+	<RequestCreateModal
+		:is-open="isCreateModalOpen"
+		@close="isCreateModalOpen = false"
+		@created="refreshRequests"
+	/>
 </template>

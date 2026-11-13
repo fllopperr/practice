@@ -1,42 +1,131 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/store/auth'
+
 definePageMeta({
 	layout: 'public'
 })
 
+const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
+
 const email = ref('0000@mail.demo')
 const password = ref('••••••••••')
+const showExpired = ref(
+	route.query.expired === '1' || authStore.sessionExpiredBanner
+)
 
-const handleLogin = () => {
-	router.push('/dashboard')
+const handleLogin = async () => {
+	await authStore.login(email.value, password.value)
+	router.push('/requests')
 }
+
+const onKeydown = (e: KeyboardEvent) => {
+	const tag = (e.target as HTMLElement)?.tagName
+	if (tag === 'INPUT' || tag === 'TEXTAREA') return
+	if (e.key === '2') showExpired.value = !showExpired.value
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
 	<div
-		class="self-stretch px-4 md:px-8 lg:px-16 py-16 flex flex-col justify-start items-center gap-6"
+		class="self-stretch px-4 md:px-8 lg:px-16 py-16 flex flex-col justify-start items-center gap: 6"
 	>
 		<form
-			class="w-full md:w-96 lg:w-[440px] p-6 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default flex flex-col justify-start items-start gap-4"
+			class="w-full md:w-96 lg:w-[440px]"
+			style="
+				padding: 24px;
+				background: var(--color-bg-surface, #23204d);
+				border-radius: 4px;
+				outline: 1px var(--color-border-default, #413e74) solid;
+				outline-offset: -1px;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: flex-start;
+				gap: 16px;
+				display: flex;
+			"
 			@submit.prevent="handleLogin"
 		>
 			<div
-				class="self-stretch justify-start text-color-text-primary text-2xl md:text-3xl font-bold font-['Montserrat'] leading-8 md:leading-9"
+				style="
+					align-self: stretch;
+					color: var(--color-text-primary, #e8e7ec);
+					font-size: 28px;
+					font-family: Montserrat;
+					font-weight: 700;
+					line-height: 36px;
+				"
 			>
 				С возвращением
 			</div>
 			<div
-				class="self-stretch justify-start text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+				style="
+					align-self: stretch;
+					color: var(--color-text-secondary, #b9b3d4);
+					font-size: 14px;
+					font-family: Montserrat;
+					font-weight: 400;
+					line-height: 20px;
+				"
 			>
 				Войдите для работы с заявками
 			</div>
 
 			<div
-				class="self-stretch h-20 flex flex-col justify-start items-start gap-2"
+				v-if="showExpired"
+				style="
+					align-self: stretch;
+					padding: 24px;
+					background: var(--color-bg-surface, #23204d);
+					border-radius: 4px;
+					outline: 1px var(--color-border-default, #413e74) solid;
+					outline-offset: -1px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 16px;
+					display: flex;
+				"
+			>
+				<div
+					style="
+						align-self: stretch;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 16px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 24px;
+					"
+				>
+					Сессия истекла. Войдите снова, чтобы продолжить работу.
+				</div>
+			</div>
+
+			<div
+				class="w-full lg:w-[392px]"
+				style="
+					height: 80px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 8px;
+					display: flex;
+				"
 			>
 				<label
 					for="login-email"
-					class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						align-self: stretch;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Электронная почта
 				</label>
@@ -44,16 +133,44 @@ const handleLogin = () => {
 					id="login-email"
 					v-model="email"
 					type="email"
-					class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+					style="
+						align-self: stretch;
+						width: 100%;
+						padding: 14px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 400;
+						line-height: 20px;
+					"
 				/>
 			</div>
 
 			<div
-				class="self-stretch h-20 flex flex-col justify-start items-start gap-2"
+				class="w-full lg:w-[392px]"
+				style="
+					height: 80px;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					gap: 8px;
+					display: flex;
+				"
 			>
 				<label
 					for="login-pass"
-					class="self-stretch justify-start text-color-text-primary text-xs font-semibold font-['Montserrat'] leading-4"
+					style="
+						align-self: stretch;
+						color: var(--color-text-primary, #e8e7ec);
+						font-size: 12px;
+						font-family: Montserrat;
+						font-weight: 600;
+						line-height: 16px;
+					"
 				>
 					Пароль
 				</label>
@@ -61,20 +178,65 @@ const handleLogin = () => {
 					id="login-pass"
 					v-model="password"
 					type="password"
-					class="self-stretch w-full p-3.5 bg-color-bg-surface rounded-sm outline outline-1 outline-offset-[-1px] outline-color-border-default focus:outline-2 focus:outline-indigo-500 text-color-text-secondary text-sm font-normal font-['Montserrat'] leading-5"
+					style="
+						align-self: stretch;
+						width: 100%;
+						padding: 14px;
+						background: var(--color-bg-surface, #23204d);
+						border-radius: 4px;
+						outline: 1px var(--color-border-default, #413e74) solid;
+						outline-offset: -1px;
+						color: var(--color-text-secondary, #b9b3d4);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 400;
+						line-height: 20px;
+					"
 				/>
 			</div>
 
 			<button
 				type="submit"
-				class="w-full md:w-auto h-10 px-4 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-sm inline-flex justify-center items-center gap-2 text-color-text-inverse text-sm font-medium font-['Montserrat'] leading-5 wf-focus-ring"
+				data-state="default"
+				data-variant="primary"
+				class="w-full md:w-auto"
+				style="
+					height: 40px;
+					padding-left: 16px;
+					padding-right: 16px;
+					background: linear-gradient(90deg, #635bff 0%, #c548ab 100%);
+					border-radius: 4px;
+					justify-content: center;
+					align-items: center;
+					gap: 8px;
+					display: inline-flex;
+					cursor: pointer;
+				"
 			>
-				Войти
+				<span
+					style="
+						color: var(--color-text-inverse, white);
+						font-size: 14px;
+						font-family: Montserrat;
+						font-weight: 500;
+						line-height: 20px;
+					"
+				>
+					Войти
+				</span>
 			</button>
 
 			<NuxtLink
-				to="/dashboard"
-				class="self-stretch justify-start text-color-text-accent text-xs font-medium font-['Montserrat'] leading-4 hover:underline"
+				to="/register"
+				style="
+					align-self: stretch;
+					color: var(--color-text-accent, #79cee8);
+					font-size: 12px;
+					font-family: Montserrat;
+					font-weight: 500;
+					line-height: 16px;
+				"
+				class="hover:underline"
 			>
 				Нет аккаунта? Зарегистрироваться
 			</NuxtLink>
