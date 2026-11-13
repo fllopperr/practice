@@ -6,6 +6,14 @@ export default defineEventHandler(async event => {
 	const user = getServerSessionUser(event)
 	const body = await readBody(event)
 
+	if (body?.simulateError) {
+		throw createError({
+			statusCode: 500,
+			statusMessage:
+				'Не удалось сохранить изменения. Данные не потеряны. Повторите попытку.'
+		})
+	}
+
 	const parsed = CreateRequestSchema.safeParse(body)
 	if (!parsed.success) {
 		throw createError({

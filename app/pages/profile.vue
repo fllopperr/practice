@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/store/auth'
 import { usePreferencesStore, type ListDensity } from '~/store/preferences'
 
 const preferencesStore = usePreferencesStore()
+const authStore = useAuthStore()
 
 const name = ref(preferencesStore.operatorName)
 const email = ref(preferencesStore.operatorEmail)
@@ -293,8 +295,9 @@ const handleSaveProfile = () => {
 		</div>
 	</div>
 
-	<NuxtLink
-		to="/login"
+	<button
+		type="button"
+		data-testid="logout-button"
 		data-state="default"
 		data-variant="secondary"
 		style="
@@ -309,8 +312,15 @@ const handleSaveProfile = () => {
 			align-items: center;
 			gap: 8px;
 			display: inline-flex;
+			cursor: pointer;
 		"
 		class="wf-focus-ring"
+		@click="
+			async () => {
+				await authStore.logout()
+				await navigateTo('/login')
+			}
+		"
 	>
 		<span
 			style="
@@ -323,5 +333,5 @@ const handleSaveProfile = () => {
 		>
 			Выйти из аккаунта
 		</span>
-	</NuxtLink>
+	</button>
 </template>

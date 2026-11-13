@@ -90,9 +90,12 @@ export const useRequests = () => {
 
 	watch(
 		[debouncedSearch, statusFilter, priorityFilter, assigneeFilter, sortBy],
-		() => {
-			page.value = 1
-			syncUrl()
+		(newVals, oldVals) => {
+			const hasFilterChanged = newVals.some((val, idx) => val !== oldVals[idx])
+			if (hasFilterChanged) {
+				page.value = 1
+				syncUrl()
+			}
 		}
 	)
 
@@ -136,6 +139,13 @@ export const useRequests = () => {
 	} = useFetch<ApiRequestsListResponse>('/api/requests', {
 		query: apiQuery,
 		watch: [apiQuery]
+	})
+
+	watch(fetchError, err => {
+		const e = err as { statusCode?: number; status?: number } | null
+		if (e?.statusCode === 401 || e?.status === 401) {
+			navigateTo('/login?expired=1')
+		}
 	})
 
 	const requests = computed<WorkRequest[]>(() => {
